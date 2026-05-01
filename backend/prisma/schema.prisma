@@ -28,7 +28,7 @@ model Vehicle {
   model               String
   year                Int
   type                VehicleType
-  status              VehicleStatus
+  status              VehicleStatus @default(ACTIVE)
   currentOdometerKm   Float         @default(0)
 
   trips Trip[]
