@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +8,85 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum VehicleType {
+  TRUCK
+  VAN
+  MOTORCYCLE
+}
+
+enum VehicleStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Vehicle {
+  id                  String        @id @default(uuid())
+  plateNumber         String        @unique
+  make                String
+  model               String
+  year                Int
+  type                VehicleType
+  status              VehicleStatus
+  currentOdometerKm   Float         @default(0)
+
+  trips Trip[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TripStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Trip {
+  id                   String     @id @default(uuid())
+  status               TripStatus @default(SCHEDULED)
+  originAddress        String
+  destinationAddress   String
+  plannedDistanceKm    Float?
+  plannedDurationMin   Float?
+  plannedRoutePolyline String?
+  odometerStartKm      Float?
+  odometerEndKm        Float?
+  actualDistanceKm     Float?
+  actualDurationMin    Float?
+
+  scheduledAt         DateTime
+  startedAt           DateTime?
+  endedAt             DateTime?
+  notes               String?
+  cancellationReason  String?
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  vehicleId String
+
+  driver   Driver @relation(fields: [driverId], references: [id])
+  driverId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Driver {
+  id            String       @id @default(uuid())
+  name          String
+  licenseNumber String       @unique
+  licenseExpiry DateTime
+  status        DriverStatus
+
+  trips Trip[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
