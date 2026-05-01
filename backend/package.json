@@ -24,7 +24,8 @@
     "pg": "^8.20.0",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
-    "typescript-eslint": "^8.59.1"
+    "typescript-eslint": "^8.59.1",
+    "zod": "^4.4.1"
   },
   "devDependencies": {
     "@types/morgan": "^1.9.10",
