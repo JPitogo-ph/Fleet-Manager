@@ -83,7 +83,7 @@ model Driver {
   name          String
   licenseNumber String       @unique
   licenseExpiry DateTime
-  status        DriverStatus
+  status        DriverStatus @default(ACTIVE)
 
   trips Trip[]
 
