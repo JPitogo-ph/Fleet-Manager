@@ -28,6 +28,7 @@ export const vehicleService = {
   },
 
   async update(id: string, input: UpdateVehicleInput) {
+    if (Object.keys(input).length === 0) throw new AppError(404, "Request body cannot be empty")
     await this.getById(id);
     const updateInput = stripUndefinedKeys(input);
 
