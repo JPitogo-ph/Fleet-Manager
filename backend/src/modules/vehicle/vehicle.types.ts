@@ -1,11 +1,11 @@
-import { VehicleStatus, VehicleType } from "../../../generated/prisma/enums";
+import { VehicleStatus, VehicleType } from "../../../generated/prisma/enums.js";
 import { z } from "zod";
 
 export const CreateVehicleSchema = z.object({
   plateNumber: z.string().min(1),
   make: z.string().min(1),
   model: z.string().min(1),
-  year: z
+  year: z.coerce
     .number()
     .int()
     .min(1900)
@@ -15,7 +15,7 @@ export const CreateVehicleSchema = z.object({
 
 export const UpdateVehicleSchema = CreateVehicleSchema.partial().extend({
   status: z.enum(VehicleStatus).optional(),
-});
+}).strict(); //Silenty 200s with invalid key without strict mode.
 
 export type CreateVehicleInput = z.infer<typeof CreateVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof UpdateVehicleSchema>;
