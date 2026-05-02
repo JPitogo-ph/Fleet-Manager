@@ -1,8 +1,11 @@
-import { prisma } from "../../lib/prisma";
-import { VehicleStatus } from "../../../generated/prisma/enums";
-import { AppError } from "../../types/error.types";
-import type { CreateVehicleInput, UpdateVehicleInput } from "./vehicle.types";
-import { stripUndefinedKeys } from "../../utils/stripUndefinedKeys";
+import { prisma } from "../../lib/prisma.js";
+import { VehicleStatus } from "../../../generated/prisma/enums.js";
+import { AppError } from "../../types/error.types.js";
+import type {
+  CreateVehicleInput,
+  UpdateVehicleInput,
+} from "./vehicle.types.js";
+import { stripUndefinedKeys } from "../../utils/stripUndefinedKeys.js";
 
 //Service is just object of functions, absolutely blows my mind but makes sense as express does not have DI.
 export const vehicleService = {
