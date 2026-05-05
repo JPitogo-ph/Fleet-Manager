@@ -4,11 +4,14 @@ import { TripStatus } from "../../../generated/prisma/enums.js";
 const CreateTripSchema = z
   .object({
     vehicleId: z.uuid(),
-    driverId: z.uuid,
+    driverId: z.uuid(),
     originAddress: z.string().min(1),
     destinationAddress: z.string().min(1),
     scheduledAt: z.iso.datetime(),
-    notes: z.string().optional(),
+    notes: z
+      .string()
+      .nullish()
+      .transform((val) => val ?? null),
   })
   .strict();
 
