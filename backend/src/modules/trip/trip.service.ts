@@ -39,7 +39,7 @@ export const TripService = {
         driver: { select: { id: true, name: true, licenseNumber: true } },
       },
     });
-    if (!trip) throw new AppError(404, "Trop not found");
+    if (!trip) throw new AppError(404, "Trip not found");
 
     return trip;
   },
