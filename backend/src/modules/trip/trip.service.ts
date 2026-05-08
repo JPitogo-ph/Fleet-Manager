@@ -4,11 +4,11 @@ import { TripStatus } from "../../../generated/prisma/enums.js";
 import type { CreateTripInput } from "./trip.types.js";
 import { AppError } from "../../types/error.types.js";
 
-export const TripService = {
+export const tripService = {
   async getAll(filters: {
     status?: TripStatus;
     vehicleId?: string;
-    driverId: string;
+    driverId?: string;
   }) {
     const where: Prisma.TripWhereInput = {};
 
@@ -73,7 +73,7 @@ export const TripService = {
       throw new AppError(409, "Driver license is expired");
 
     //Driver must not already be on active trip
-    const driverOnTrip = await prisma.driver.findFirst({
+    const driverOnTrip = await prisma.trip.findFirst({
       where: { id: input.driverId, status: TripStatus.ACTIVE },
     });
     if (driverOnTrip)

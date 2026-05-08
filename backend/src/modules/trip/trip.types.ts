@@ -1,7 +1,7 @@
 import z from "zod";
 import { TripStatus } from "../../../generated/prisma/enums.js";
 
-const CreateTripSchema = z
+export const CreateTripSchema = z
   .object({
     vehicleId: z.uuid(),
     driverId: z.uuid(),
@@ -15,7 +15,7 @@ const CreateTripSchema = z
   })
   .strict();
 
-const GetTripsSchema = z.object({
+export const GetTripsSchema = z.object({
   status: z.enum(TripStatus).optional(),
   vehicleId: z.uuid().optional(),
   driverId: z.uuid().optional(),
