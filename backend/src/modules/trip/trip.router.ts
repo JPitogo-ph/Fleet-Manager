@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { tripService } from "./trip.service.js";
 import {
+  CancelTripSchema,
+  CompleteTripSchema,
   CreateTripSchema,
   GetTripsSchema,
+  StartTripSchema,
   type CreateTripInput,
 } from "./trip.types.js";
 import type { Request, Response, NextFunction } from "express";
@@ -51,6 +54,46 @@ tripRouter.delete(
     try {
       await tripService.remove(req.params.id as string);
       res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// Business logic
+tripRouter.patch(
+  "/:id/start",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const input = StartTripSchema.parse(req.body);
+      const trip = await tripService.start(req.params.id as string, input);
+      res.json(trip);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+tripRouter.patch(
+  "/:id/complete",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const input = CompleteTripSchema.parse(req.body);
+      const trip = await tripService.complete(req.params.id as string, input);
+      res.json(trip);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+tripRouter.patch(
+  "/:id/cancel",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const input = CancelTripSchema.parse(req.body);
+      const trip = await tripService.cancel(req.params.id as string, input);
+      res.json(trip);
     } catch (err) {
       next(err);
     }
