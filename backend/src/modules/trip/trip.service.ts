@@ -1,10 +1,17 @@
 import { prisma } from "../../lib/prisma.js";
 import { Prisma } from "../../../generated/prisma/client.js";
 import { TripStatus } from "../../../generated/prisma/enums.js";
-import type { CreateTripInput } from "./trip.types.js";
+import type {
+  CreateTripInput,
+  StartTripInput,
+  CreateTripSchema,
+  CancelTripInput,
+  CompleteTripInput,
+} from "./trip.types.js";
 import { AppError } from "../../types/error.types.js";
 
 export const tripService = {
+  //Basic CRUD
   async getAll(filters: {
     status?: TripStatus;
     vehicleId?: string;
@@ -74,7 +81,7 @@ export const tripService = {
 
     //Driver must not already be on active trip
     const driverOnTrip = await prisma.trip.findFirst({
-      where: { id: input.driverId, status: TripStatus.ACTIVE },
+      where: { driverId: input.driverId, status: TripStatus.ACTIVE },
     });
     if (driverOnTrip)
       throw new AppError(409, "Driver is already in active trip");
@@ -90,4 +97,95 @@ export const tripService = {
 
     return await prisma.trip.delete({ where: { id } });
   },
+  //Business Logic
+  async start(id: string, input: StartTripInput) {
+    const trip = await this.getById(id);
+
+    if (trip.status !== TripStatus.SCHEDULED)
+      throw new AppError(409, "Trip must be SCHEDULED in order to start");
+
+    //Vehicle and Driver still active
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: trip.vehicleId },
+    });
+    if (!vehicle || vehicle.status === "ACTIVE")
+      throw new AppError(409, "Vehicle is not active");
+
+    const vehicleOnTrip = await prisma.trip.findFirst({
+      where: { vehicleId: trip.vehicleId, status: TripStatus.ACTIVE },
+    });
+    if (vehicleOnTrip)
+      throw new AppError(409, "Vehicle is already in active trip");
+
+    const driver = await prisma.driver.findUnique({
+      where: { id: trip.driverId },
+    });
+    if (!driver || driver.status !== "ACTIVE")
+      throw new AppError(409, "Driver is not active");
+
+    if (driver.licenseExpiry < new Date())
+      throw new AppError(409, "Driver license is expired");
+
+    const driverOnTrip = await prisma.driver.findFirst({
+      where: { driverId: trip.driverId, status: TripStatus.ACTIVE },
+    });
+    if (driverOnTrip)
+      throw new AppError(409, "Driver is already on active trip");
+
+    if (input.odometerStartKm < vehicle.currentOdometerKm)
+      throw new AppError(
+        409,
+        "odometerStartKm cannot be less than vehicle's current odometer value",
+      );
+
+    return await prisma.trip.update({
+      where: { id },
+      data: {
+        odometerStartKm: input.odometerStartKm,
+        startedAt: new Date(),
+        status: TripStatus.ACTIVE,
+      },
+    });
+  },
+
+  async complete(id: string, input: CompleteTripInput) {
+    const trip = await this.getById(id)
+
+    if (trip.status !== TripStatus.ACTIVE) throw new AppError(409, 'Trip must be ACTIVE to complete')
+    if (input.odometerEndKm < (trip.odometerStartKm ?? 0)) throw new AppError(409, "odometerEndKm cannot be less than odometerStartKm")
+    
+    const actualDistanceKm = input.odometerEndKm - (trip.odometerStartKm ?? 0)
+    const actualDurationInMin = (Date.now() - (trip.startedAt?.getTime() ?? 0)) / 60000 //60k not 6000 its in milliseconds don't forget again
+
+    return await prisma.$transaction([
+      prisma.trip.update({
+        where: {id},
+        data: {
+          odometerEndKm: input.odometerEndKm,
+          actualDistanceKm,
+          actualDurationInMin,
+          endedAt: new Date(),
+          status: TripStatus.COMPLETED
+        }
+      }),
+      prisma.vehicle.update({
+        where: {id: trip.vehicleId},
+        data: {currentOdometerKm: input.odometerEndKm}
+      })
+    ])
+  },
+  
+  async cancel(id: string, input: CancelTripInput) {
+    const trip = await this.getById(id)
+
+    if (trip.status === TripStatus.COMPLETED || trip.status === TripStatus.CANCELLED) throw new AppError(409, "Trip is already CANCELLED or COMPLETED") 
+    
+    return await prisma.trip.update({
+      where: {id},
+      data: {
+        status: TripStatus.CANCELLED,
+        cancellationReason: input.cancellationReason ?? null
+      }
+    })
+  }
 };
