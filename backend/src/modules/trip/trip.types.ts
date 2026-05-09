@@ -1,6 +1,7 @@
 import z from "zod";
 import { TripStatus } from "../../../generated/prisma/enums.js";
 
+//Basic CRUD
 export const CreateTripSchema = z
   .object({
     vehicleId: z.uuid(),
@@ -22,3 +23,26 @@ export const GetTripsSchema = z.object({
 });
 
 export type CreateTripInput = z.infer<typeof CreateTripSchema>;
+
+//Domain Logic
+export const StartTripSchema = z
+  .object({
+    odometerStartKm: z.number().positive(),
+  })
+  .strict();
+
+export const CompleteTripSchema = z
+  .object({
+    odometerEndKm: z.number().positive(),
+  })
+  .strict();
+
+export const CancelTripSchema = z
+  .object({
+    cancellationReason: z.string().min(1).optional(),
+  })
+  .strict();
+
+export type StartTripInput = z.infer<typeof StartTripSchema>;
+export type CompleteTripInput = z.infer<typeof CompleteTripSchema>;
+export type CancelTripInput = z.infer<typeof CancelTripSchema>;
