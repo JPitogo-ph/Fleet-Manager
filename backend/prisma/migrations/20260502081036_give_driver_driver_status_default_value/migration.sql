@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Driver" ALTER COLUMN "status" SET DEFAULT 'ACTIVE';
