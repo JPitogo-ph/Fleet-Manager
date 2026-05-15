@@ -26,7 +26,8 @@ proxyRouter.all(
             : null,
       });
 
-      const data = await response.json();
+      //Without 204 guard it breaks because of empty body
+      const data = response.status === 204 ? null : await response.json()
       res.status(response.status).json(data);
     } catch (err) {
       next(err);
