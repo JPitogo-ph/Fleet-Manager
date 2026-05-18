@@ -15,4 +15,21 @@ app.use("/auth", authRouter);
 
 app.use(requireAuth);
 
+//Quick hack to put /me into BFF because it needs to be underneath requireAuth.
+app.get("/auth/me", async (req, res) => {
+  const tokens = req.session.tokens;
+  if (!tokens) return res.status(401).json({ error: "Not Authenticated" });
+
+  const payload = JSON.parse(
+    Buffer.from(tokens.accessToken.split(".")[1]!, "base64url").toString(), //The above guard should guarantee this.
+  );
+
+  res.json({
+    sub: payload.sub,
+    email: payload.email,
+    name: payload.name,
+    roles: payload.realm_access?.roles ?? [], //TODO: Make sure roles are in real_access instead of resource_access.
+  });
+});
+
 app.use("/api", proxyRouter);
